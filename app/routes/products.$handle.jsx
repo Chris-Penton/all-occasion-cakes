@@ -1,4 +1,4 @@
-import {Suspense} from 'react';
+import {Suspense, Fragment, useState} from 'react';
 import {defer, redirect} from '@shopify/remix-oxygen';
 import {Await, Link, useLoaderData} from '@remix-run/react';
 import {
@@ -8,15 +8,15 @@ import {
   getSelectedProductOptions,
   CartForm,
 } from '@shopify/hydrogen';
-import {getVariantUrl} from '~/lib/variants';
 
-import {useState} from 'react';
+import {getVariantUrl} from '~/lib/variants';
 import {
-  CheckIcon,
   QuestionMarkCircleIcon,
   StarIcon,
+  CheckIcon,
+  ChevronUpDownIcon,
 } from '@heroicons/react/20/solid';
-import {RadioGroup} from '@headlessui/react';
+import {RadioGroup, Listbox, Transition} from '@headlessui/react';
 import {ShieldCheckIcon} from '@heroicons/react/24/outline';
 
 const sizeDescription = [
@@ -58,16 +58,27 @@ const XXXX = {
   ],
 };
 
-/**
- * @type {MetaFunction<typeof loader>}
- */
+const people = [
+  {id: 1, name: 'Wade Cooper'},
+  {id: 2, name: 'Arlene Mccoy'},
+  {id: 3, name: 'Devon Webb'},
+  {id: 4, name: 'Tom Cook'},
+  {id: 5, name: 'Tanya Fox'},
+  {id: 6, name: 'Hellen Schmidt'},
+  {id: 7, name: 'Caroline Schultz'},
+  {id: 8, name: 'Mason Heaney'},
+  {id: 9, name: 'Claudie Smitham'},
+  {id: 10, name: 'Emil Schaefer'},
+];
+
+function classNames(...classes) {
+  return classes.filter(Boolean).join(' ');
+}
+
 export const meta = ({data, location}) => {
   return [{title: `All Occasion Cakes | ${data?.product.title ?? ''}`}];
 };
 
-/**
- * @param {LoaderFunctionArgs}
- */
 export async function loader({params, request, context}) {
   const {handle} = params;
   const {storefront} = context;
@@ -89,6 +100,12 @@ export async function loader({params, request, context}) {
   const {product} = await storefront.query(PRODUCT_QUERY, {
     variables: {handle, selectedOptions},
   });
+
+  const productOptions = await storefront.query(PRODUCT_METAFIELDS, {
+    variables: {id: 'gid://shopify/Metaobject/78347960604'},
+  });
+
+  const mainAOCFlavours = await storefront.query(SHOP_FLAVOURS);
 
   if (!product?.id) {
     throw new Response(null, {status: 404});
@@ -113,17 +130,9 @@ export async function loader({params, request, context}) {
     variables: {handle},
   });
 
-  const {shop} = await storefront.query(SHOP_FLAVOURS);
-
-  return defer({product, variants, shop});
+  return defer({product, variants, productOptions, mainAOCFlavours});
 }
 
-/**
- * @param {{
- *   product: ProductFragment;
- *   request: Request;
- * }}
- */
 function redirectToFirstVariant({product, request}) {
   const url = new URL(request.url);
   const firstVariant = product.variants.nodes[0];
@@ -143,43 +152,19 @@ function redirectToFirstVariant({product, request}) {
 
 export default function Product() {
   /** @type {LoaderReturnData} */
-  const {product, variants} = useLoaderData();
+  const {product, variants, productOptions, mainAOCFlavours} = useLoaderData();
   const {selectedVariant} = product;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:grid lg:max-w-7xl lg:grid-cols-2 lg:gap-x-8 lg:px-8">
       <div className="lg:max-w-lg lg:self-end">
-        <nav aria-label="Breadcrumb">
-          <ol role="list" className="flex items-center space-x-2">
-            {XXXX.breadcrumbs.map((breadcrumb, breadcrumbIdx) => (
-              <li key={breadcrumb.id}>
-                <div className="flex items-center text-sm">
-                  <a
-                    href={breadcrumb.href}
-                    className="font-medium text-gray-500 hover:text-gray-900"
-                  >
-                    {breadcrumb.name}
-                  </a>
-                  {breadcrumbIdx !== XXXX.breadcrumbs.length - 1 ? (
-                    <svg
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      aria-hidden="true"
-                      className="ml-2 h-5 w-5 flex-shrink-0 text-gray-300"
-                    >
-                      <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
-                    </svg>
-                  ) : null}
-                </div>
-              </li>
-            ))}
-          </ol>
-        </nav>
         <div className="mt-4">
           <ProductMain
             selectedVariant={selectedVariant}
             product={product}
             variants={variants}
+            productOptions={productOptions}
+            mainAOCFlavours={mainAOCFlavours}
           />
         </div>
       </div>
@@ -188,9 +173,6 @@ export default function Product() {
   );
 }
 
-/**
- * @param {{image: ProductVariantFragment['image']}}
- */
 function ProductImage({image}) {
   if (!image) {
     return <div>Error Loading Image</div>;
@@ -212,15 +194,15 @@ function ProductImage({image}) {
   );
 }
 
-/**
- * @param {{
- *   product: ProductFragment;
- *   selectedVariant: ProductFragment['selectedVariant'];
- *   variants: Promise<ProductVariantsQuery>;
- * }}
- */
-function ProductMain({selectedVariant, product, variants}) {
+function ProductMain({
+  selectedVariant,
+  product,
+  variants,
+  productOptions,
+  mainAOCFlavours,
+}) {
   const {title, descriptionHtml} = product;
+
   return (
     <>
       <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
@@ -234,12 +216,15 @@ function ProductMain({selectedVariant, product, variants}) {
           dangerouslySetInnerHTML={{__html: descriptionHtml}}
         />
       </div>
+
       <Suspense
         fallback={
           <ProductForm
             product={product}
             selectedVariant={selectedVariant}
             variants={[]}
+            productOptions={productOptions}
+            mainAOCFlavours={mainAOCFlavours}
           />
         }
       >
@@ -252,6 +237,8 @@ function ProductMain({selectedVariant, product, variants}) {
               product={product}
               selectedVariant={selectedVariant}
               variants={data.product?.variants.nodes || []}
+              productOptions={productOptions}
+              mainAOCFlavours={mainAOCFlavours}
             />
           )}
         </Await>
@@ -260,11 +247,6 @@ function ProductMain({selectedVariant, product, variants}) {
   );
 }
 
-/**
- * @param {{
- *   selectedVariant: ProductFragment['selectedVariant'];
- * }}
- */
 function ProductPrice({selectedVariant}) {
   return (
     <div className="flex items-center">
@@ -288,14 +270,13 @@ function ProductPrice({selectedVariant}) {
   );
 }
 
-/**
- * @param {{
- *   product: ProductFragment;
- *   selectedVariant: ProductFragment['selectedVariant'];
- *   variants: Array<ProductVariantFragment>;
- * }}
- */
-function ProductForm({product, selectedVariant, variants}) {
+function ProductForm({
+  product,
+  selectedVariant,
+  variants,
+  productOptions,
+  mainAOCFlavours,
+}) {
   return (
     <>
       <VariantSelector
@@ -305,6 +286,18 @@ function ProductForm({product, selectedVariant, variants}) {
       >
         {({option}) => <ProductOptions key={option.name} option={option} />}
       </VariantSelector>
+
+      {productOptions.metaobject.fields.map((option) => {
+        if (option.key === 'flavour' && option.value === 'true') {
+          return (
+            <FlavourSelector
+              label={'Select a Flavour'}
+              key={option.key}
+              data={mainAOCFlavours}
+            />
+          );
+        }
+      })}
 
       <AddToCartButton
         disabled={!selectedVariant || !selectedVariant.availableForSale}
@@ -317,6 +310,16 @@ function ProductForm({product, selectedVariant, variants}) {
                 {
                   merchandiseId: selectedVariant.id,
                   quantity: 1,
+                  attributes: [
+                    {
+                      key: 'Flavour',
+                      value: 'Choc',
+                    },
+                    {
+                      key: 'Name',
+                      value: 'Chris',
+                    },
+                  ],
                 },
               ]
             : []
@@ -328,9 +331,6 @@ function ProductForm({product, selectedVariant, variants}) {
   );
 }
 
-/**
- * @param {{option: VariantOption}}
- */
 function ProductOptions({option}) {
   return (
     // <div className="mt-6">
@@ -390,15 +390,6 @@ function ProductOptions({option}) {
   );
 }
 
-/**
- * @param {{
- *   analytics?: unknown;
- *   children: React.ReactNode;
- *   disabled?: boolean;
- *   lines: CartLineInput[];
- *   onClick?: () => void;
- * }}
- */
 function AddToCartButton({analytics, children, disabled, lines, onClick}) {
   return (
     <div className="mt-10">
@@ -417,7 +408,7 @@ function AddToCartButton({analytics, children, disabled, lines, onClick}) {
             <button
               type="submit"
               onClick={onClick}
-              className="flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50"
+              className="flex w-full items-center justify-center rounded-md border border-transparent bg-secondary px-8 py-3 text-base font-medium text-white hover:bg-primary hover:text-secondary focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 focus:ring-offset-gray-50"
               disabled={disabled ?? fetcher.state !== 'idle'}
             >
               {children}
@@ -429,9 +420,88 @@ function AddToCartButton({analytics, children, disabled, lines, onClick}) {
   );
 }
 
+function FlavourSelector({label, data}) {
+  const [selected, setSelected] = useState({name: 'Select -'});
+
+  return (
+    <Listbox value={selected} onChange={setSelected}>
+      {({open}) => (
+        <>
+          <Listbox.Label className="mt-4 block text-sm font-medium leading-6 text-gray-900">
+            {label}
+          </Listbox.Label>
+          <div className="relative mt-2">
+            <Listbox.Button className="relative w-full cursor-default rounded-3xl bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-secondary sm:text-sm sm:leading-6">
+              <span className="block truncate">{selected.name}</span>
+              <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                <ChevronUpDownIcon
+                  className="h-5 w-5 text-gray-400"
+                  aria-hidden="true"
+                />
+              </span>
+            </Listbox.Button>
+
+            <Transition
+              show={open}
+              as={Fragment}
+              leave="transition ease-in duration-100"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-3xl bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                {JSON.parse(data.metaobject.fields[0].value).flavour.map(
+                  (flavourOption) => (
+                    <Listbox.Option
+                      key={flavourOption.name}
+                      className={({active}) =>
+                        classNames(
+                          active ? 'bg-secondary text-white' : 'text-gray-900',
+                          'relative cursor-default select-none py-2 pl-8 pr-4',
+                        )
+                      }
+                      value={flavourOption}
+                    >
+                      {({selected, active}) => (
+                        <>
+                          <span
+                            className={classNames(
+                              selected ? 'font-semibold' : 'font-normal',
+                              'block truncate',
+                            )}
+                          >
+                            {flavourOption.name}
+                          </span>
+
+                          {selected ? (
+                            <span
+                              className={classNames(
+                                active ? 'text-white' : 'text-secondary',
+                                'absolute inset-y-0 left-0 flex items-center pl-1.5',
+                              )}
+                            >
+                              <CheckIcon
+                                className="h-5 w-5"
+                                aria-hidden="true"
+                              />
+                            </span>
+                          ) : null}
+                        </>
+                      )}
+                    </Listbox.Option>
+                  ),
+                )}
+              </Listbox.Options>
+            </Transition>
+          </div>
+        </>
+      )}
+    </Listbox>
+  );
+}
+
 const SHOP_FLAVOURS = `#graphql
 query ShopInfo {
-  metaobject(handle: { handle: "aoc_main_flavours", type: "flavours" }) {
+  metaobject(handle: { handle: "main-aoc-flavours", type: "flavours" }) {
     handle
     id
     fields {
@@ -502,6 +572,11 @@ const PRODUCT_FRAGMENT = `#graphql
       description
       title
     }
+    metafield(namespace: "custom", key: "product_options"){
+      id
+      value
+    }
+    
   }
   ${PRODUCT_VARIANT_FRAGMENT}
 `;
@@ -540,6 +615,18 @@ const VARIANTS_QUERY = `#graphql
   ) @inContext(country: $country, language: $language) {
     product(handle: $handle) {
       ...ProductVariants
+    }
+  }
+`;
+
+const PRODUCT_METAFIELDS = `#graphql
+  query getMetaObjectById($id: ID!) {
+    metaobject(id: $id) {
+      id
+      fields{
+        value
+        key
+      }
     }
   }
 `;
