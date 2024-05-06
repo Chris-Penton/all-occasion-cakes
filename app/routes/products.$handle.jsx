@@ -277,6 +277,8 @@ function ProductForm({
   productOptions,
   mainAOCFlavours,
 }) {
+  console.log(JSON.stringify(productOptions));
+
   return (
     <>
       <VariantSelector
@@ -333,60 +335,61 @@ function ProductForm({
 
 function ProductOptions({option}) {
   return (
-    // <div className="mt-6">
-    //   <div className="sm:flex sm:justify-between" key={option.name}>
-    //     <h5 className="block text-sm font-medium text-gray-700">
-    //       {option.name}
-    //     </h5>
-    //     <div className="grid grid-cols-3 gap-4 sm:grid-cols-3 lg:grid-cols-3">
-    //       {option.values.map(({value, isAvailable, isActive, to}) => {
-    //         return (
-    //           <Link
-    //             key={option.name + value}
-    //             prefetch="intent"
-    //             preventScrollReset
-    //             replace
-    //             to={to}
-    //             className={
-    //               isActive
-    //                 ? 'text-gray-900 bg-white ring-2 ring-secondary relative bg-white block cursor-pointer rounded-lg border border-gray-300 p-4 focus:outline-none'
-    //                 : 'text-gray-900 relative bg-white block cursor-pointer rounded-lg border border-gray-300 p-4 focus:outline-none'
-    //             }
-    //             // style={{
-    //             //   border: isActive
-    //             //     ? '1px solid black'
-    //             //     : '1px solid transparent',
-    //             //   opacity: isAvailable ? 1 : 0.3,
-    //             // }}
-    //           >
-    //             <p className="text-sm font-medium">{value}</p>
+    <>
+      {/* <div className="mt-6">
+        <div className="sm:flex sm:justify-between" key={option.name}>
+          <h5 className="block text-sm font-medium text-gray-700">
+            {option.name}
+          </h5>
+          <div className="grid grid-cols-3 gap-4 sm:grid-cols-3 lg:grid-cols-3">
+            {option.values.map(({value, isAvailable, isActive, to}) => {
+              return (
+                <Link
+                  key={option.name + value}
+                  prefetch="intent"
+                  preventScrollReset
+                  replace
+                  to={to}
+                  className={
+                    isActive
+                      ? 'text-gray-900 bg-white ring-2 ring-secondary relative bg-white block cursor-pointer rounded-lg border border-gray-300 p-4 focus:outline-none'
+                      : 'text-gray-900 relative bg-white block cursor-pointer rounded-lg border border-gray-300 p-4 focus:outline-none'
+                  }
+                  // style={{
+                  //   border: isActive
+                  //     ? '1px solid black'
+                  //     : '1px solid transparent',
+                  //   opacity: isAvailable ? 1 : 0.3,
+                  // }}
+                >
+                  <p className="text-sm font-medium">{value}</p>
 
-    //             {option.name === 'Size' && (
-    //               <>
-    //                 {sizeDescription.map((item) =>
-    //                   value === item.name ? (
-    //                     <p as="p" className="mt-1 text-sm">
-    //                       {item.portions} Portions
-    //                     </p>
-    //                   ) : null,
-    //                 )}
-    //               </>
-    //             )}
+                  {option.name === 'Size' && (
+                    <>
+                      {sizeDescription.map((item) =>
+                        value === item.name ? (
+                          <p as="p" className="mt-1 text-sm">
+                            {item.portions} Portions
+                          </p>
+                        ) : null,
+                      )}
+                    </>
+                  )}
 
-    //             <div
-    //               className={
-    //                 isActive
-    //                   ? 'border border-secondary pointer-events-none absolute -inset-px rounded-lg'
-    //                   : ' vorder-2 border-transparent pointer-events-none absolute -inset-px rounded-lg'
-    //               }
-    //             />
-    //           </Link>
-    //         );
-    //       })}
-    //     </div>
-    //   </div>
-    // </div>
-    <></>
+                  <div
+                    className={
+                      isActive
+                        ? 'border border-secondary pointer-events-none absolute -inset-px rounded-lg'
+                        : ' vorder-2 border-transparent pointer-events-none absolute -inset-px rounded-lg'
+                    }
+                  />
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </div> */}
+    </>
   );
 }
 
