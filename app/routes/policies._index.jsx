@@ -1,6 +1,11 @@
 import {json} from '@shopify/remix-oxygen';
 import {useLoaderData, Link} from '@remix-run/react';
 
+
+function classNames(...classes) {
+  return classes.filter(Boolean).join(' ');
+}
+
 /**
  * @param {LoaderFunctionArgs}
  */
@@ -20,17 +25,36 @@ export default function Policies() {
   const {policies} = useLoaderData();
 
   return (
-    <div className="policies">
-      <h1>Policies</h1>
-      <div>
-        {policies.map((policy) => {
-          if (!policy) return null;
-          return (
-            <fieldset key={policy.id}>
-              <Link to={`/policies/${policy.handle}`}>{policy.title}</Link>
-            </fieldset>
-          );
-        })}
+    <div className="px-6 py-24 sm:py-16 lg:px-8">
+      <div className="mx-auto max-w-2xl text-center">
+        <h2 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
+          Policies
+        </h2>
+      </div>
+
+      <div className="pt-14">
+        <ul
+          role="list"
+          className="grid grid-cols-1 gap-x-6 gap-y-8 lg:grid-cols-3 xl:gap-x-8"
+        >
+          {policies.map((policy) => {
+            if (!policy) return null;
+            return (
+              <Link to={`/policies/${policy.handle}`}>
+                <li
+                  key={policy.id}
+                  className="overflow-hidden rounded-3xl border border-gray-200"
+                >
+                  <div className="hover:bg-bgPrimary hover:text-white flex items-center gap-x-4 border-b border-gray-900/5 bg-white p-6">
+                    <div className="text-sm font-medium leading-6 ">
+                      {policy.title}
+                    </div>
+                  </div>
+                </li>
+              </Link>
+            );
+          })}
+        </ul>
       </div>
     </div>
   );

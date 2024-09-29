@@ -15,7 +15,18 @@ export default async function handleRequest(
   responseHeaders,
   remixContext,
 ) {
-  const {nonce, header, NonceProvider} = createContentSecurityPolicy();
+  const {nonce, header, NonceProvider} = createContentSecurityPolicy({
+    connectSrc: [
+      "'self'",
+      'https://monorail-edge.shopifysvc.com',
+      'http://localhost:*',
+      'ws://localhost:*',
+      'ws://127.0.0.1:*',
+      'ws://*.tryhydrogen.dev:*',
+      'https://nb07q6.buildship.run/file-upload',
+      'https://www.alloccasioncakes.com.au/*'
+    ],
+  });
 
   const body = await renderToReadableStream(
     <NonceProvider>

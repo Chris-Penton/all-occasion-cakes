@@ -1,6 +1,7 @@
 import {Await} from '@remix-run/react';
 import {Suspense} from 'react';
 import {Aside} from '~/components/Aside';
+import {AsideSearch} from '~/components/AsideSearch';
 import {Footer} from '~/components/Footer';
 import {Header, HeaderMenu} from '~/components/Header';
 import {CartMain} from '~/components/Cart';
@@ -53,8 +54,8 @@ function CartAside({cart}) {
 
 function SearchAside() {
   return (
-    <Aside id="search-aside" heading="SEARCH">
-      <div className="predictive-search">
+    <AsideSearch id="search-aside" heading="Search">
+      <div>
         <br />
         <PredictiveSearchForm>
           {({fetchResults, inputRef}) => (
@@ -82,7 +83,7 @@ function SearchAside() {
         </PredictiveSearchForm>
         <PredictiveSearchResults />
       </div>
-    </Aside>
+    </AsideSearch>
   );
 }
 

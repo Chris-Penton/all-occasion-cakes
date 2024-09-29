@@ -17,7 +17,6 @@ export const NO_PREDICTIVE_SEARCH_RESULTS = [
 export function SearchForm({searchTerm}) {
   const inputRef = useRef(null);
 
-  // focus the input when cmd+k is pressed
   useEffect(() => {
     function handleKeyDown(event) {
       if (event.key === 'k' && event.metaKey) {

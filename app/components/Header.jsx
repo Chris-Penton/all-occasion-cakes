@@ -346,7 +346,6 @@ function activeLinkStyle({isActive, isPending}) {
   return {
     fontWeight: isActive ? 'bold' : undefined,
     color: isActive ? '#752424' : undefined,
-    
   };
 }
 

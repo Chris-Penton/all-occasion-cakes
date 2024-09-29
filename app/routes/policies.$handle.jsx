@@ -1,11 +1,15 @@
 import {json} from '@shopify/remix-oxygen';
 import {Link, useLoaderData} from '@remix-run/react';
+import {
+  CheckCircleIcon,
+  InformationCircleIcon,
+} from '@heroicons/react/20/solid';
 
 /**
  * @type {MetaFunction<typeof loader>}
  */
 export const meta = ({data}) => {
-  return [{title: `Hydrogen | ${data?.policy.title ?? ''}`}];
+  return [{title: `All Occasion Cakes | ${data?.policy.title ?? ''}`}];
 };
 
 /**
@@ -40,25 +44,41 @@ export async function loader({params, context}) {
   return json({policy});
 }
 
+function sanitizeHtmlClasses(html) {
+  return html.replace(/data-sanitized-classname="([^"]*)"/g, 'class="$1"');
+}
+
 export default function Policy() {
   /** @type {LoaderReturnData} */
   const {policy} = useLoaderData();
 
+  console.log(policy);
+
+  const sanitizedHtml = policy.body.replace(/className=/g, 'class=');
+
   return (
-    <div className="policy">
-      <br />
-      <br />
-      <div>
-        <Link to="/policies">← Back to Policies</Link>
+    <div className="px-6 py-32 lg:px-8">
+      <div className="mx-auto max-w-3xl text-base leading-7 text-gray-700"></div>
+
+      <div className="text-lg max-w-prose mx-auto">
+        <h1>
+          <span className="block text-base text-center text-secondary font-semibold tracking-wide uppercase">
+            <Link to="/policies">Back to Policies</Link>
+          </span>
+          <span className="mt-2 block text-3xl text-center leading-8 font-extrabold tracking-tight text-aocBg1 sm:text-4xl">
+            {policy.title}
+          </span>
+        </h1>
       </div>
-      <br />
-      <h1>{policy.title}</h1>
-      <div dangerouslySetInnerHTML={{__html: policy.body}} />
+
+      <div
+        className="mt-6 prose prose-indigo prose-lg text-gray-500 mx-auto"
+        dangerouslySetInnerHTML={{__html: sanitizedHtml}}
+      />
     </div>
   );
 }
 
-// NOTE: https://shopify.dev/docs/api/storefront/latest/objects/Shop
 const POLICY_CONTENT_QUERY = `#graphql
   fragment Policy on ShopPolicy {
     body

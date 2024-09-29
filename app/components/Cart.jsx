@@ -1,7 +1,6 @@
 import {CartForm, Image, Money} from '@shopify/hydrogen';
 import {Link} from '@remix-run/react';
 import {useVariantUrl} from '~/lib/variants';
-import {XMarkIcon} from '@heroicons/react/24/outline';
 
 /**
  * @param {CartMainProps}
@@ -14,10 +13,15 @@ export function CartMain({layout, cart}) {
   const className = `cart-main ${withDiscount ? 'with-discount' : ''}`;
 
   return (
-    <>
-      <CartEmpty hidden={linesCount} layout={layout} />
-      <CartDetails cart={cart} layout={layout} />
-    </>
+    <div className="">
+      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:px-0">
+        <h1 className="text-center text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          Shopping Cart
+        </h1>
+        <CartEmpty hidden={linesCount} layout={layout} />
+        <CartDetails cart={cart} layout={layout} />
+      </div>
+    </div>
   );
 }
 
@@ -29,21 +33,10 @@ function CartDetails({layout, cart}) {
 
   return (
     <>
-      <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
-        <div className="flex items-start justify-between">
-          <div className="text-lg font-medium text-gray-900">CART</div>
-          <CloseAside />
-        </div>{' '}
-        <div className="mt-8">
-          <div className="flow-root">
-            <CartLines lines={cart?.lines} layout={layout} />
-          </div>
-        </div>
-      </div>
-
+      <CartLines lines={cart?.lines} layout={layout} />
       {cartHasItems && (
         <CartSummary cost={cart.cost} layout={layout}>
-          <CartDiscounts discountCodes={cart.discountCodes} />
+          {/* <CartDiscounts discountCodes={cart.discountCodes} /> */}
           <CartCheckoutActions checkoutUrl={cart.checkoutUrl} />
         </CartSummary>
       )}
@@ -61,11 +54,21 @@ function CartLines({lines, layout}) {
   if (!lines) return null;
 
   return (
-    <ul role="list" className="-my-6 divide-y divide-gray-200">
-      {lines.nodes.map((line) => (
-        <CartLineItem key={line.id} line={line} layout={layout} />
-      ))}
-    </ul>
+    <form className="mt-12">
+      <section aria-labelledby="cart-heading">
+        <h2 id="cart-heading" className="sr-only">
+          Items in your shopping cart
+        </h2>
+        <ul
+          role="list"
+          className="divide-y divide-gray-200 border-b border-t border-gray-200"
+        >
+          {lines.nodes.map((line) => (
+            <CartLineItem key={line.id} line={line} layout={layout} />
+          ))}
+        </ul>
+      </section>
+    </form>
   );
 }
 
@@ -82,47 +85,48 @@ function CartLineItem({layout, line}) {
 
   return (
     <li key={id} className="flex py-6">
-      <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-3xl border border-gray-200">
-        {image && (
+      {image && (
+        <div className="flex-shrink-0">
           <Image
             alt={title}
             data={image}
-            className="h-full w-full object-cover object-center"
             loading="lazy"
+            className="h-24 w-24 rounded-md object-cover object-center sm:h-32 sm:w-32"
           />
-        )}
-      </div>
-
-      <div className="ml-4 flex flex-1 flex-col">
-        <div className="flex justify-between text-base font-medium text-gray-900">
-          <Link
-            prefetch="intent"
-            to={lineItemUrl}
-            onClick={() => {
-              if (layout === 'aside') {
-                // close the drawer
-                window.location.href = lineItemUrl;
-              }
-            }}
-          >
-            {/* <p>
-            <strong>{product.title}</strong>
-          </p> */}
-            <h3>
-              <a href={product.title}>{product.title}</a>
-            </h3>
-          </Link>
-          <CartLinePrice line={line} as="span" />
         </div>
-        <ul>
-          {selectedOptions.map((option) => (
-            <li key={option.name}>
-              <p className="mt-1 text-sm text-gray-500">
-                {option.name}: {option.value}
-              </p>
-            </li>
-          ))}
-        </ul>
+      )}
+
+      <div className="ml-4 flex flex-1 flex-col sm:ml-6">
+        <div>
+          <div className="flex justify-between">
+            <h4 className="text-sm">
+              <Link
+                prefetch="intent"
+                className="font-medium text-gray-700 hover:text-gray-800"
+                to={lineItemUrl}
+                onClick={() => {
+                  if (layout === 'aside') {
+                    // close the drawer
+                    window.location.href = lineItemUrl;
+                  }
+                }}
+              >
+                {product.title}
+              </Link>
+            </h4>
+            <CartLinePrice line={line} as="span" />
+          </div>
+          <ul>
+            {selectedOptions.map((option) => (
+              <li key={option.name}>
+                <p className="mt-1 text-sm text-gray-500">
+                  {option.name}: {option.value}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+
         <CartLineQuantity line={line} />
       </div>
     </li>
@@ -136,15 +140,30 @@ function CartCheckoutActions({checkoutUrl}) {
   if (!checkoutUrl) return null;
 
   return (
-    <div className="mt-6">
-      <a
-        href={checkoutUrl}
-        className="flex items-center justify-center rounded-3xl border border-transparent bg-secondary px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-bgPrimary"
-        target="_self"
-      >
-        <p>Continue to Checkout</p>
-      </a>
-    </div>
+    <>
+      <div className="mt-10">
+        <a
+          href={checkoutUrl}
+          target="_self"
+          className="block w-full text-center rounded-3xl border border-transparent bg-secondary px-4 py-3 text-base font-medium text-white shadow-sm hover:bg-bgPrimary focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 focus:ring-offset-gray-50"
+        >
+          Checkout
+        </a>
+      </div>
+
+      <div className="mt-6 text-center text-sm">
+        <p>
+          or{' '}
+          <a
+            href="/shop"
+            className="font-medium text-secondary hover:text-bgPrimary"
+          >
+            Continue Shopping
+            <span aria-hidden="true"> &rarr;</span>
+          </a>
+        </p>
+      </div>
+    </>
   );
 }
 
@@ -156,23 +175,32 @@ function CartCheckoutActions({checkoutUrl}) {
  * }}
  */
 export function CartSummary({cost, layout, children = null}) {
+  const className =
+    layout === 'page' ? 'cart-summary-page' : 'cart-summary-aside';
+
   return (
-    <div
-      aria-labelledby="cart-summary"
-      className="border-t border-gray-200 px-4 py-6 sm:px-6"
-    >
-      <div className="flex justify-between text-base font-medium text-gray-900">
-        <p>Subtotal</p>
-        <p>
-          {cost?.subtotalAmount?.amount ? (
-            <Money data={cost?.subtotalAmount} />
-          ) : (
-            '-'
-          )}
-        </p>
-      </div>
+    <section aria-labelledby="summary-heading" className="mt-10">
+      <h2 id="summary-heading" className="sr-only">
+        Order summary
+      </h2>
+      <dl className="space-y-4">
+        <div className="flex items-center justify-between">
+          <dt className="text-base font-medium text-gray-900">Subtotal</dt>
+          <dd className="ml-4 text-base font-medium text-gray-900">
+            {' '}
+            {cost?.subtotalAmount?.amount ? (
+              <Money data={cost?.subtotalAmount} />
+            ) : (
+              '-'
+            )}
+          </dd>
+        </div>
+      </dl>
+      <p className="mt-1 text-sm text-gray-500">
+        Shipping and taxes will be calculated at checkout.
+      </p>
       {children}
-    </div>
+    </section>
   );
 }
 
@@ -186,12 +214,14 @@ function CartLineRemoveButton({lineIds}) {
       action={CartForm.ACTIONS.LinesRemove}
       inputs={{lineIds}}
     >
-      <button
-        className="font-medium text-secondary hover:text-bgPrimary"
-        type="submit"
-      >
-        Remove
-      </button>
+      <div className="ml-4">
+        <button
+          type="submit"
+          className="text-sm font-medium text-secondary hover:text-bgPrimary"
+        >
+          <span>Remove</span>
+        </button>
+      </div>
     </CartForm>
   );
 }
@@ -202,33 +232,14 @@ function CartLineRemoveButton({lineIds}) {
 function CartLineQuantity({line}) {
   if (!line || typeof line?.quantity === 'undefined') return null;
   const {id: lineId, quantity} = line;
-  // const prevQuantity = Number(Math.max(0, quantity - 1).toFixed(0));
-  // const nextQuantity = Number((quantity + 1).toFixed(0));
+  const prevQuantity = Number(Math.max(0, quantity - 1).toFixed(0));
+  const nextQuantity = Number((quantity + 1).toFixed(0));
 
   return (
-    <div className="flex flex-1 items-end justify-between text-sm">
-      <p className="text-gray-500">Qty: {quantity}</p>
-      {/* <CartLineUpdateButton lines={[{id: lineId, quantity: prevQuantity}]}>
-        <button
-          aria-label="Decrease quantity"
-          disabled={quantity <= 1}
-          name="decrease-quantity"
-          value={prevQuantity}
-        >
-          <span>&#8722; </span>
-        </button>
-      </CartLineUpdateButton>
-      &nbsp;
-      <CartLineUpdateButton lines={[{id: lineId, quantity: nextQuantity}]}>
-        <button
-          aria-label="Increase quantity"
-          name="increase-quantity"
-          value={nextQuantity}
-        >
-          <span>&#43;</span>
-        </button>
-      </CartLineUpdateButton>
-      &nbsp; */}
+    <div className="mt-4 flex flex-1 items-end justify-between">
+      <p className="flex items-center space-x-2 text-sm text-gray-700">
+        <span></span>
+      </p>
       <CartLineRemoveButton lineIds={[lineId]} />
     </div>
   );
@@ -254,12 +265,10 @@ function CartLinePrice({line, priceType = 'regular', ...passthroughProps}) {
   }
 
   return (
-    <Money
-      className="ml-4"
-      withoutTrailingZeros
-      {...passthroughProps}
-      data={moneyV2}
-    />
+    <p className="ml-4 text-sm font-medium text-gray-900">
+      {' '}
+      <Money withoutTrailingZeros {...passthroughProps} data={moneyV2} />
+    </p>
   );
 }
 
@@ -321,39 +330,13 @@ function CartDiscounts({discountCodes}) {
 
       {/* Show an input to apply a discount */}
       <UpdateDiscountForm discountCodes={codes}>
-        <div className="mt-4 flex space-x-4">
-          <input
-            type="text"
-            placeholder="Discount Code"
-            className="block indent-2.5 w-full rounded-3xl p-1.5 border-secondary shadow-sm focus:border-secondary focus:ring-secondary sm:text-sm"
-          />
-          <button
-            type="submit"
-            className="rounded-3xl bg-secondary px-4 py-2 text-sm font-medium text-white hover:bg-bgPrimary focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 focus:ring-offset-gray-50"
-          >
-            Apply
-          </button>
+        <div>
+          <input type="text" name="discountCode" placeholder="Discount code" />
+          &nbsp;
+          <button type="submit">Apply</button>
         </div>
       </UpdateDiscountForm>
     </div>
-  );
-}
-
-function CloseAside() {
-  return (
-    /* eslint-disable-next-line jsx-a11y/anchor-is-valid */
-    <a className="close" href="#" onChange={() => history.go(-1)}>
-      <div className="ml-3 flex h-7 items-center">
-        <button
-          type="button"
-          className="relative -m-2 p-2 text-gray-400 hover:text-gray-500"
-        >
-          <span className="absolute -inset-0.5" />
-          <span className="sr-only">Close panel</span>
-          <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-        </button>
-      </div>
-    </a>
   );
 }
 
